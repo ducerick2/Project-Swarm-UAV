@@ -28,8 +28,21 @@ CSV_COLS = [
 ]
 
 
-def run(cmd, env, cwd):
-    return subprocess.run(cmd, env=env, cwd=cwd, capture_output=True, text=True)
+def run_inherit(cmd, env, cwd) -> int:
+    """Chạy tiến trình, để nó kế thừa thẳng terminal (tqdm bar hiện live trong tmux)."""
+    return subprocess.run(cmd, env=env, cwd=cwd).returncode
+
+
+def run_capture_live(cmd, env, cwd):
+    """Chạy, vừa STREAM stdout/stderr ra terminal vừa thu lại text để parse."""
+    proc = subprocess.Popen(cmd, env=env, cwd=cwd, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, text=True, bufsize=1)
+    chunks = []
+    for line in proc.stdout:
+        print(line, end="", flush=True)
+        chunks.append(line)
+    proc.wait()
+    return proc.returncode, "".join(chunks)
 
 
 def parse_test_output(text: str) -> dict:
@@ -50,6 +63,8 @@ def main() -> None:
     ap.add_argument("--obs", type=int, default=3)
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--steps", type=int, default=200000)
+    ap.add_argument("--eval-interval", type=int, default=1000)
+    ap.add_argument("--save-interval", type=int, default=10000)
     ap.add_argument("--gpu", type=int, required=True)
     ap.add_argument("--test-epi", type=int, default=32)
     ap.add_argument("--outdir", required=True)
@@ -73,13 +88,15 @@ def main() -> None:
     tag = f"{args.algo}/{args.env}/n{args.num_agents}/seed{args.seed}"
     print(f"[T1] TRAIN {tag} steps={args.steps} gpu={args.gpu}", flush=True)
     t0 = time.time()
-    tr = run(["python", "train.py", "--env", args.env, "--algo", args.algo,
-              "-n", str(args.num_agents), "--obs", str(args.obs),
-              "--seed", str(args.seed), "--steps", str(args.steps),
-              "--log-dir", outdir], env, str(DGPPO))
+    rc = run_inherit(["python", "train.py", "--env", args.env, "--algo", args.algo,
+                      "-n", str(args.num_agents), "--obs", str(args.obs),
+                      "--seed", str(args.seed), "--steps", str(args.steps),
+                      "--eval-interval", str(args.eval_interval),
+                      "--save-interval", str(args.save_interval),
+                      "--log-dir", outdir], env, str(DGPPO))
     train_s = round(time.time() - t0, 1)
-    if tr.returncode != 0:
-        print(f"[T1] TRAIN FAILED {tag}\n{tr.stdout[-2000:]}\n{tr.stderr[-2000:]}", flush=True)
+    if rc != 0:
+        print(f"[T1] TRAIN FAILED {tag} (rc={rc})", flush=True)
         return
 
     # tìm checkpoint mới nhất khớp seed
@@ -91,11 +108,11 @@ def main() -> None:
     ckpt = cands[-1]
 
     print(f"[T1] TEST  {tag} epi={args.test_epi}", flush=True)
-    te = run(["python", "test.py", "--path", str(ckpt), "--no-video",
-              "--epi", str(args.test_epi)], env, str(DGPPO))
-    metrics = parse_test_output(te.stdout)
+    _, out = run_capture_live(["python", "test.py", "--path", str(ckpt), "--no-video",
+                               "--epi", str(args.test_epi)], env, str(DGPPO))
+    metrics = parse_test_output(out)
     if metrics["safety_rate"] is None:
-        print(f"[T1] TEST PARSE FAIL {tag}\n{te.stdout[-1500:]}\n{te.stderr[-800:]}", flush=True)
+        print(f"[T1] TEST PARSE FAIL {tag}", flush=True)
 
     row = {
         "method": args.algo, "env": args.env, "N": args.num_agents, "obs": args.obs,
