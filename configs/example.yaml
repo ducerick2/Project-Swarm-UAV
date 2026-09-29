@@ -1,0 +1,26 @@
+# Cấu hình thí nghiệm mẫu — lược đồ dùng chung (Giai đoạn 0).
+# Xem configs/schema.md để biết ý nghĩa từng khóa.
+
+method: dgppo            # dgppo | informarl | informarl_lag | cm_dgppo | fixed_margin | domain_rand
+env: LidarSpread         # LidarSpread | LidarLine | MPESpread | CEFC-lite
+N: 3                     # 3 | 5 | 7
+seed: 0
+
+# --- Nhiễu (lớp bao NoiseWrapper) ---
+noise:
+  sigma_w: 0.0           # nhiễu động học
+  sigma_v: 0.0           # nhiễu cảm biến
+  shift: 0.0             # dịch chuyển phân phối
+
+# --- Biên an toàn thích nghi (chỉ dùng cho method: cm_dgppo) ---
+margin:
+  alpha: 0.05
+  eta: 0.05
+  delta_max: 1.0
+  per_agent: false       # (d)
+  window_steps: 0        # (e) 0 = theo episode
+
+# --- Ghi log ---
+logging:
+  results_csv: results/run.csv
+  backend: wandb         # wandb | tensorboard | none

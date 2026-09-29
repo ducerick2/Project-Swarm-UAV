@@ -1,0 +1,7 @@
+# Cố định version để tái hiện (cả nhóm thống nhất ở Giai đoạn 0).
+# DGPPO chạy JAX/GPU — chốt jax/jaxlib khớp CUDA của máy train.
+# jax[cuda12]==0.4.30   # ví dụ; chỉnh theo CUDA thực tế
+pyyaml>=6.0
+numpy>=1.24
+# wandb           # nếu dùng W&B
+# tensorboard     # nếu dùng TensorBoard

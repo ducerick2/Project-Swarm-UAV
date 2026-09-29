@@ -1,0 +1,31 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# --- Artifact nặng: KHÔNG commit (dùng DVC hoặc W&B) ---
+results/**/*.csv
+results/**/*.parquet
+checkpoints/
+*.ckpt
+*.pt
+*.npz
+*.orbax*
+wandb/
+runs/
+tensorboard/
+logs/
+*.mp4
+*.log
+
+# --- Giữ cấu trúc thư mục rỗng ---
+!**/.gitkeep
+
+# --- OS / editor ---
+.DS_Store
+.idea/
+.vscode/
