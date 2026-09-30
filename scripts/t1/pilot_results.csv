@@ -1,0 +1,7 @@
+method,env,N,obs,seed,steps,reward,cost,safety_rate,train_runtime_s,git_commit,ckpt
+dgppo,LidarSpread,3,3,0,200000,-0.885,-0.649,1.0,25515.2,51b3b11,/data/ducbm3/dgppo_runs/n3/LidarSpread/dgppo/seed0_929170757_ABHT
+dgppo,LidarLine,3,3,0,200000,-0.28,-0.655,0.98958,24378.7,51b3b11,/data/ducbm3/dgppo_runs/n3/LidarLine/dgppo/seed0_930001352_GNYH
+informarl,LidarSpread,3,3,0,200000,-0.217,-0.646,0.65625,18642.1,51b3b11,/data/ducbm3/dgppo_runs/n3/LidarSpread/informarl/seed0_930070046_GVPM
+informarl,LidarLine,3,3,0,200000,-0.19,-0.652,0.77083,18860.7,51b3b11,/data/ducbm3/dgppo_runs/n3/LidarLine/informarl/seed0_930121208_ICMA
+informarl_lagr,LidarSpread,3,3,0,200000,-0.189,-0.718,0.84375,24448.5,51b3b11,/data/ducbm3/dgppo_runs/n3/LidarSpread/informarl_lagr/seed0_930172709_LJAI
+informarl_lagr,LidarLine,3,3,0,200000,-0.168,-0.653,0.86458,23746.3,51b3b11,/data/ducbm3/dgppo_runs/n3/LidarLine/informarl_lagr/seed0_1001001517_PCBA
