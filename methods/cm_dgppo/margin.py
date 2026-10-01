@@ -48,10 +48,11 @@ class MarginUpdater:
     def update(self, violated) -> List[float]:
         """Cập nhật delta theo tín hiệu vi phạm e_t.
 
-        `violated`: bool (delta chung) hoặc list[bool] theo agent (khi per_agent).
+        `violated`: bool/float trong [0, 1] (delta chung) hoặc list theo agent (khi per_agent).
+        Float là tỉ lệ cửa sổ có vi phạm trong một lô (vd. trung bình trên các env song song).
         """
         a, eta, dmax = self.cfg.alpha, self.cfg.eta, self.cfg.delta_max
-        if isinstance(violated, bool):
+        if isinstance(violated, (bool, int, float)) or getattr(violated, "ndim", 1) == 0:
             violated = [violated] * len(self.delta)
         for i, e in enumerate(violated):
             self.delta[i] = min(max(self.delta[i] + eta * (float(e) - a), 0.0), dmax)

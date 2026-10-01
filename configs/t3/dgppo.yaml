@@ -1,0 +1,21 @@
+# Mạch T3 — dgppo trên LidarSpread, N=3, σ_train = "vừa" (tạm thời, chờ T2 chốt lưới σ).
+method: dgppo
+env: LidarSpread          # LidarSpread | LidarLine
+N: 3
+n_obs: 3
+seed: 0
+
+noise:
+  sigma_w: 0.005          # nhiễu động học, cộng vào vị trí mỗi bước (car_radius = 0.05)
+  sigma_v: 0.01           # nhiễu cảm biến: tự định vị + vị trí tương đối LiDAR
+  shift: 0.0
+
+train:
+  steps: 200000           # mặc định DGPPO; smoke test: --steps 20 --debug
+  n_env_train: 128
+  n_env_test: 32
+  batch_size: 16384
+  eval_interval: 50
+  save_interval: 50
+logging:
+  backend: wandb          # wandb | none

@@ -29,3 +29,7 @@ logs/
 .DS_Store
 .idea/
 .vscode/
+
+docs/
+AGENTS.md
+DESIGN.md
