@@ -4,10 +4,10 @@
 set -u
 RUNDIR=/data/ducbm3/dgppo_runs
 CSV=$RUNDIR/t1_baseline_pilot.csv
-LOG=$RUNDIR/pilot_console.log
+LOG=${LOG:-$RUNDIR/seeds_console.log}
 STATE=$RUNDIR/.monitor_state          # số run đã báo
 ERRSTATE=$RUNDIR/.monitor_errcount    # số dòng lỗi đã báo
-TOTAL=6
+TOTAL=${TOTAL:-30}                    # 5 seed x 6 config
 
 done_n=0
 [ -f "$CSV" ] && done_n=$(($(wc -l < "$CSV") - 1))
@@ -23,7 +23,7 @@ new_err=$((err_n - perr))
 # trạng thái tmux + GPU
 tmux_ok=no; tmux has-session -t uav 2>/dev/null && tmux list-windows -t uav 2>/dev/null | grep -q "train" && tmux_ok=yes
 gpu_util=$(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits -i 1 2>/dev/null)
-finished=no; grep -q "PILOT done" "$LOG" 2>/dev/null && finished=yes
+finished=no; [ "$done_n" -ge "$TOTAL" ] && finished=yes
 
 echo "STATUS done=$done_n/$TOTAL new=$new errors=$err_n new_err=$new_err tmux=$tmux_ok gpu1_util=${gpu_util}% finished=$finished"
 
