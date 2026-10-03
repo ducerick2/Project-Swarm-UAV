@@ -32,6 +32,14 @@ export PYTHONPATH=$REPO/scripts/compat:${PYTHONPATH:-}
 export CUDA_VISIBLE_DEVICES=$GPU
 
 cd "$DGPPO"
-# bỏ --no-video nếu muốn xuất video (vào $CKPT/videos); mặc định có video:
-python test.py --path "$CKPT" --epi "$EPI"
-echo "Video (nếu có) ở: $CKPT/videos"
+# Mặc định KHÔNG render video (render video đang lỗi PIL trên setup này và làm
+# DGPPO rơi vào ipdb gây treo). Muốn thử video: VIDEO=1 bash eval_ckpt.sh ...
+# `< /dev/null` đảm bảo kể cả rơi vào ipdb cũng nhận EOF và thoát, không treo.
+VIDEO=${VIDEO:-0}
+if [ "$VIDEO" = "1" ]; then
+  echo "(thử render video — nếu lỗi sẽ tự thoát, không treo)"
+  python test.py --path "$CKPT" --epi "$EPI" < /dev/null
+  echo "Video (nếu render được) ở: $CKPT/videos/"
+else
+  python test.py --path "$CKPT" --epi "$EPI" --no-video < /dev/null
+fi
