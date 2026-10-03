@@ -21,3 +21,16 @@ try:
             setattr(jax, _name, getattr(_jtu, _name))
 except Exception:
     pass
+
+# --- ffmpeg cho render video (hệ thống không có ffmpeg) ---
+# Trỏ matplotlib vào binary ffmpeg tĩnh của imageio-ffmpeg để FFMpegWriter ghi .mp4
+# được (nếu không, matplotlib fallback PillowWriter -> lỗi "unknown file extension").
+try:
+    import os
+    import imageio_ffmpeg
+    _exe = imageio_ffmpeg.get_ffmpeg_exe()
+    os.environ.setdefault("IMAGEIO_FFMPEG_EXE", _exe)
+    import matplotlib
+    matplotlib.rcParams["animation.ffmpeg_path"] = _exe
+except Exception:
+    pass

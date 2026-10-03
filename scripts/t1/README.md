@@ -54,3 +54,9 @@ tmux ls; tail -f /data/ducbm3/dgppo_runs/pilot_console.log
 - [ ] Mở rộng seed (3 hoặc 5) sau khi pilot xác nhận xu hướng
 - [ ] Phân tích runtime N=3,5,7 (steps/s, thời gian hội tụ, RAM GPU, thời gian suy luận)
 - [ ] So xu hướng với bài gốc; ghi lại mọi chênh lệch
+
+## Render video (test.py --có video)
+
+Hệ thống không có ffmpeg. Đã cài `imageio-ffmpeg` (binary tĩnh) trong venv và shim
+`scripts/compat/sitecustomize.py` tự trỏ matplotlib vào đó, nên `VIDEO=1 bash scripts/t1/eval_ckpt.sh ...`
+ghi được .mp4 (vào `<ckpt>/videos/<step>/`). Nếu dựng venv mới: `pip install imageio-ffmpeg`.
