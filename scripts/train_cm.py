@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Huấn luyện CM-DGPPO (mạch T3) hoặc baseline DGPPO trên env LiDAR có nhiễu.
 
-    python scripts/train_cm.py --config configs/t3/cm_dgppo_full.yaml [--seed 3] [--steps 50 --debug]
+    python scripts/train_cm.py --config configs/t3/cm_dgppo_relax.yaml [--seed 3] [--steps 50 --debug]
 
 Đọc YAML theo lược đồ chung (configs/schema.md) cộng khối `cm:`; dựng env có nhiễu
 (methods/cm_dgppo/noisy_env.py) cho cả train và eval; dùng Trainer gốc của DGPPO.
-`method: dgppo` cho baseline DGPPO(σ_train) cùng env có nhiễu.
+Method: cm_dgppo_relax (adaptive) hoặc fixed_margin (ngưỡng cố định); xem configs/t3/.
 """
 from __future__ import annotations
 
@@ -54,6 +54,10 @@ def main() -> None:
     steps = args.steps or train_cfg.get("steps", 200_000)
     n_env_train = args.n_env_train or train_cfg.get("n_env_train", 128)
     batch_size = args.batch_size or train_cfg.get("batch_size", 16384)
+    # ghi lại giá trị THỰC dùng (kể cả ghi đè từ dòng lệnh) vào config.yaml của run
+    cfg["train"] = train_cfg | {"steps": steps, "n_env_train": n_env_train, "batch_size": batch_size}
+    if cfg["method"] == "fixed_margin" and "tag" not in cfg:
+        cfg["tag"] = f"d{cfg.get('cm', {}).get('cm_fixed_delta', 0.0):g}"  # khớp mặc định của CMDGPPO
 
     if args.debug or cfg.get("logging", {}).get("backend", "wandb") == "none":
         os.environ["WANDB_MODE"] = "disabled"

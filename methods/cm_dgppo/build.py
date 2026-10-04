@@ -5,15 +5,14 @@ import copy
 
 from .noisy_env import make_noisy_env
 
-# method (YAML) -> cm_variant của CMDGPPO; "dgppo" là DGPPO gốc
+# method (YAML) -> cm_variant của CMDGPPO; "dgppo" là DGPPO gốc (dùng để eval checkpoint T1)
 METHOD_TO_VARIANT = {
-    "cm_dgppo_state": "state",
-    "cm_dgppo_cbf": "cbf",
-    "cm_dgppo": "full",
-    "cm_dgppo_full": "full",
-    "cm_dgppo_scalar": "scalar",
+    "cm_dgppo_relax": "relax",
     "fixed_margin": "fixed",
 }
+
+# khóa hợp lệ trong khối `cm:` của config (tham số của CMDGPPO)
+CM_KEYS = {"cm_alpha", "cm_eta", "cm_eps_max", "cm_fixed_delta"}
 
 # siêu tham số mặc định của DGPPO (third_party/dgppo/train.py)
 DGPPO_DEFAULTS = dict(
@@ -35,7 +34,13 @@ def apply_overrides(cfg: dict, overrides: list[str]) -> dict:
         parts = key.split(".")
         for p in parts[:-1]:
             node = node.setdefault(p, {})
-        node[parts[-1]] = yaml.safe_load(raw)
+        val = yaml.safe_load(raw)
+        if isinstance(val, str):  # YAML 1.1 đọc "1e-3" thành chuỗi
+            try:
+                val = float(val)
+            except ValueError:
+                pass
+        node[parts[-1]] = val
     return cfg
 
 
@@ -68,5 +73,11 @@ def build_algo(cfg: dict, env, seed: int, steps: int, batch_size: int, policy_on
     if method == "dgppo" or policy_only:
         return DGPPO(**kwargs)
     if method in METHOD_TO_VARIANT:
-        return CMDGPPO(**kwargs, cm_variant=METHOD_TO_VARIANT[method], **cfg.get("cm", {}))
+        cm = dict(cfg.get("cm", {}))
+        for k in ("sigma_base", "sigma_kappa"):  # dùng cho env (build_env), không phải cho thuật toán
+            cm.pop(k, None)
+        unknown = set(cm) - CM_KEYS
+        if unknown:  # key sai chính tả sẽ lọt vào **kwargs của DGPPO và bị bỏ qua im lặng
+            raise ValueError(f"khóa cm.* không hợp lệ: {sorted(unknown)}; hợp lệ: {sorted(CM_KEYS)}")
+        return CMDGPPO(**kwargs, cm_variant=METHOD_TO_VARIANT[method], **cm)
     raise ValueError(f"không hỗ trợ method={method}")

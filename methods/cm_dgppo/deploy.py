@@ -1,8 +1,7 @@
 """Rollout lúc triển khai, có cập nhật biên ONLINE (mạch T3).
 
-Lúc triển khai không có trạng thái thật, nên điểm số conformal lúc train
-(h(x) - h(o~), Vh(o') - Vh(o^nom)) không tính được nữa. Tín hiệu duy nhất là VI PHẠM
-quan sát được (va chạm). Cơ chế:
+Dùng cho MỌI lần eval (eta = 0: chính sách cố định). Với eta > 0: biên phình quan sát
+cập nhật online từ VI PHẠM quan sát được (va chạm), không cần trạng thái thật. Cơ chế:
 
     biên phình quan sát của agent i:  m_i(o~) = Delta_i * sigma_m(o~_i)
     cuối mỗi cửa sổ T_w bước:          e_i = 1[agent i vi phạm trong cửa sổ]
@@ -30,7 +29,7 @@ from .costs import raw_cost_true
 @dataclass(frozen=True)
 class OnlineConfig:
     eta: float = 0.0        # 0 = tắt cập nhật online
-    alpha: float = 0.05     # mức vi phạm mục tiêu cho mỗi cửa sổ
+    alpha: float = 0.05     # mức vi phạm mục tiêu cho MỖI CỬA SỔ (eval_cm.py quy đổi từ mức mỗi episode)
     window: int = 16        # T_w (bước)
     lo: float = -1.0        # chặn dưới Delta (âm = cho phép bớt thận trọng)
     hi: float = 3.0         # chặn trên Delta (đơn vị sigma)
@@ -39,20 +38,23 @@ class OnlineConfig:
 
 
 def make_deploy_fn(env, algo, n_episodes: int, cfg: OnlineConfig):
-    """Trả hàm jit `fn(params, keys) -> dict` với keys: (n_streams, 2).
+    """Trả hàm `fn(params, keys, noise=None) -> dict`, keys: (n_streams, 2), noise: (sigma_w, sigma_v).
 
     Mỗi luồng chạy n_episodes episode nối tiếp; kết quả có shape (n_streams, n_episodes, T, ...).
+    `noise` là đối số động: chỉ biên dịch một lần rồi chạy được cả lưới nhiễu (mặc định:
+    mức nhiễu lúc dựng env). Đổi N hoặc n_obs vẫn cần env/hàm mới (đổi kích thước mảng).
     """
     T = env.max_episode_steps
     n = env.num_agents
+    if T % cfg.window != 0:
+        raise ValueError(f"T={T} phải chia hết cho window={cfg.window} (nếu không, cửa sổ cuối bị bỏ qua)")
 
-    def episode(params, delta, key):
-        graph = env.set_delta(env.reset(key), delta)
+    def episode(params, noise, delta, key):
+        graph = env.set_params(env.reset(key), noise=noise, delta=delta)
 
         def body(carry, k):
-            graph, rnn, delta, acc = carry
+            graph, rnn, delta, acc = carry                       # graph đã quan sát với `delta`
             action, rnn = algo.act(graph, rnn, params)
-            next_graph, reward, _, _, _ = env.step(graph, action)
             raw = raw_cost_true(env, graph.env_states)          # (n, n_cost), vi phạm thật bước k
             acc = acc | (raw > 0).any(axis=-1)
             end = (k + 1) % cfg.window == 0
@@ -60,20 +62,28 @@ def make_deploy_fn(env, algo, n_episodes: int, cfg: OnlineConfig):
             new_delta = jnp.where(
                 end, jnp.clip(delta + cfg.eta * (e.astype(jnp.float32) - cfg.alpha), cfg.lo, cfg.hi), delta)
             acc = jnp.where(end, jnp.zeros_like(acc), acc)
-            next_graph = next_graph._replace(env_states=next_graph.env_states._replace(delta=new_delta))
-            out = dict(reward=reward, raw=raw, delta=delta, window_end=end, window_err=e)
+            # đặt Delta mới TRƯỚC env.step để quan sát k+1 dùng ngay Delta mới (không trễ một bước)
+            graph = graph._replace(env_states=graph.env_states._replace(delta=new_delta))
+            next_graph, reward, _, _, _ = env.step(graph, action)
+            out = dict(reward=reward, raw=raw, delta=delta, delta_next=new_delta, window_end=end, window_err=e)
             return (next_graph, rnn, new_delta, acc), out
 
         init = (graph, algo.init_rnn_state, delta, jnp.zeros((n,), dtype=bool))
         (_, _, delta, _), out = jax.lax.scan(body, init, jnp.arange(T))
         return delta, out
 
-    def stream(params, key):
+    def stream(params, noise, key):
         def ep(delta, k):
-            return episode(params, delta, k)
+            return episode(params, noise, delta, k)
 
         delta0 = jnp.full((n,), cfg.delta0, jnp.float32)
         _, out = jax.lax.scan(ep, delta0, jr.split(key, n_episodes))
         return out
 
-    return jax.jit(jax.vmap(stream, in_axes=(None, 0)))
+    run = jax.jit(jax.vmap(stream, in_axes=(None, None, 0)))
+    default_noise = jnp.array([env.sigma_w, env.sigma_v], jnp.float32)
+
+    def fn(params, keys, noise=None):
+        return run(params, default_noise if noise is None else jnp.asarray(noise, jnp.float32), keys)
+
+    return fn

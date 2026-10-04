@@ -1,0 +1,33 @@
+# Mạch T3 — cm_dgppo_relax: NỚI ràng buộc an toàn của DGPPO để tăng reward, giữ va chạm ~ 5% theo UAV.
+# Môi trường KHÔNG nhiễu (giống T1) => so trực tiếp với checkpoint DGPPO của T1.
+method: cm_dgppo_relax
+env: LidarSpread          # LidarSpread | LidarLine
+N: 3
+n_obs: 3
+seed: 0
+
+noise:
+  sigma_w: 0.0
+  sigma_v: 0.0
+  shift: 0.0
+
+train:
+  steps: 200000          # như T1
+  n_env_train: 128
+  n_env_test: 32
+  batch_size: 16384
+  eval_interval: 1000
+  save_interval: 10000
+
+# h~ = h - eps, eps ∈ [0, cm_eps_max]; eps <- eps + eta (cm_alpha - e),
+# e = tỉ lệ cặp (UAV, episode) có va chạm thật. eps = 0 là DGPPO gốc.
+# eta = cm_eps_max / (cm_alpha · tau): eps lên trần trong đúng tau bước; tau = trung vị số bước để
+# DGPPO (T1, 3 seed, W&B đầy đủ) hội tụ về an toàn trên CHÍNH env này (scripts/calib_fixed_eps.py --tau-only).
+#   LidarSpread: tau = 61 000  -> eta = 0.05 / (0.05 × 61 000) = 1.639e-5
+# (LidarLine: xem cm_dgppo_relax_lidarline.yaml; giải thích: methods/cm_dgppo/PARAMS.md)
+cm:
+  cm_alpha: 0.05          # chấp nhận 5% (UAV, episode) có va chạm
+  cm_eps_max: 0.05        # nới tối đa 1 bán kính UAV (r = 0.05)
+  cm_eta: 1.639e-5        # = cm_eps_max / (cm_alpha · 61000)
+logging:
+  backend: wandb          # wandb | none

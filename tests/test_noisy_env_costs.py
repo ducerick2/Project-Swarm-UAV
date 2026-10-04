@@ -43,7 +43,6 @@ def test_noise_free_step_matches_base(env_id):
     np.testing.assert_allclose(g_noisy.nodes, g_base.nodes, atol=1e-6)
     np.testing.assert_allclose(r1, r2, atol=1e-7)
     np.testing.assert_allclose(c1, c2, atol=1e-6)
-    np.testing.assert_allclose(env.nominal_next_graph(g, a).nodes, g_base.nodes, atol=1e-6)
 
 
 def test_sensor_noise_only_touches_observation():
@@ -62,8 +61,8 @@ def test_dynamics_noise_changes_true_state():
     g = env.reset(jr.PRNGKey(3))
     a = jnp.zeros((3, 2))
     g1, *_ = env.step(g, a)
-    nom = env.nominal_next_graph(g, a)
-    assert not np.allclose(g1.env_states.agent, nom.env_states.agent)
+    g0, *_ = env.step(env.set_params(g, noise=(0.0, 0.0)), a)          # cùng bước, σ = 0 (σ nằm trong env_states)
+    assert not np.allclose(g1.env_states.agent, g0.env_states.agent)
 
 
 def test_sigma_scale_lower_bound_and_jit():

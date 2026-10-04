@@ -1,0 +1,30 @@
+# Mạch T3 — fixed_relax_lidarline: NỚI ràng buộc DGPPO một khoảng CỐ ĐỊNH eps_fixed (baseline cho cm_dgppo_relax).
+# Môi trường KHÔNG nhiễu (giống T1) => so trực tiếp với checkpoint DGPPO của T1.
+method: fixed_margin
+env: LidarLine
+N: 3
+n_obs: 3
+seed: 0
+
+noise:
+  sigma_w: 0.0
+  sigma_v: 0.0
+  shift: 0.0
+
+train:
+  steps: 200000          # như T1
+  n_env_train: 128
+  n_env_test: 32
+  batch_size: 16384
+  eval_interval: 1000
+  save_interval: 10000
+
+# h~ = h + cm_fixed_delta = h - eps_fixed (nới CỐ ĐỊNH, không tự điều chỉnh).
+# eps_fixed = phân vị alpha = 5% (k = floor(alpha (n+1))) của khoảng hở nhỏ nhất mỗi (UAV, episode)
+# của DGPPO T1, n = 3 seed × 256 episode × 3 UAV = 2304, trên tập VALIDATION (eval-seed 20000,
+# tách khỏi tập test 10000) — scripts/calib_fixed_eps.py:
+#   LidarLine: c_115 = 0.016355   (LidarSpread: 0.020855)
+cm:
+  cm_fixed_delta: -0.016355
+logging:
+  backend: wandb          # wandb | none
