@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""Điểm vào huấn luyện dùng chung.
+"""Điểm vào huấn luyện dùng chung — KHUNG (skeleton), CHƯA hiện thực.
 
     python scripts/train.py --config configs/example.yaml
 
 Đọc config theo lược đồ, dựng env (bọc NoiseWrapper), chọn phương pháp,
 huấn luyện và ghi kết quả CSV theo analysis/logging_csv.py.
-Đây là KHUNG — mỗi mạch nối phần train tương ứng của mình.
+
+LƯU Ý: đây CHỈ là khung cho T2/T3 (NoiseWrapper, CM-DGPPO) về sau.
+- Tái hiện baseline (T1) KHÔNG dùng file này: train thật là code gốc trong
+  submodule third_party/dgppo/train.py, gọi qua scripts/t1/run_baseline.py.
+- Mỗi mạch (T2/T3) sẽ nối phần train tương ứng vào các TODO bên dưới.
 """
 from __future__ import annotations
 

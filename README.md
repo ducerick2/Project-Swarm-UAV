@@ -21,9 +21,14 @@ envs/                # noise_wrapper (T2 interface), cefc_lite (T5)
 methods/cm_dgppo/    # bộ cập nhật biên delta (T3)
 configs/             # lược đồ + config mẫu
 analysis/            # metrics, csv logger, seeds, stats (T4)
-scripts/             # train.py, eval.py
-results/             # CSV/artifact (gitignore, dùng DVC/W&B)
+scripts/             # train.py (KHUNG cho T2/T3), eval.py, t1/ (tái hiện baseline)
+results/             # CSV/artifact thô (gitignore); results/checkpoints/ = best-ckpt (commit)
 ```
+
+> **Train thật ở đâu?** Baseline (T1) dùng code gốc trong submodule
+> `third_party/dgppo/` (`train.py` + `dgppo/algo/*.py`), gọi qua
+> `scripts/t1/run_baseline.py` — xem `scripts/t1/README.md`. File `scripts/train.py`
+> ở gốc chỉ là KHUNG hợp nhất cho T2/T3 (NoiseWrapper, CM-DGPPO), chưa hiện thực.
 
 ## Phân công mạch ↔ nhánh
 
@@ -41,7 +46,9 @@ results/             # CSV/artifact (gitignore, dùng DVC/W&B)
 1. Nền tảng chung land lên `main` TRƯỚC khi rẽ nhánh.
 2. Mỗi mạch làm trên nhánh riêng, mở PR vào `main`, có người phản biện (theo bảng trong báo cáo).
 3. `git pull --rebase origin main` mỗi ngày để tránh trôi nhánh.
-4. KHÔNG commit checkpoint/log/CSV kết quả — xem `.gitignore`.
+4. KHÔNG commit log/CSV kết quả thô — xem `.gitignore`.
+   **Ngoại lệ:** best-checkpoint (final, ~640KB/run) được commit vào
+   `results/checkpoints/` để chia sẻ/tái lập (gom bằng `scripts/t1/collect_best_ckpts.sh`).
 
 ## Môi trường
 

@@ -29,3 +29,10 @@ logs/
 .DS_Store
 .idea/
 .vscode/
+
+# --- NGOẠI LỆ: best-checkpoint (final, ~640KB/run, ~16MB/30 run) ĐƯỢC commit ---
+# Để chia sẻ + tái lập. Gom bằng scripts/t1/collect_best_ckpts.sh (chỉ .pkl +
+# config.yaml). Phải re-include cả thư mục rồi tới nội dung, vì "checkpoints/" ở
+# trên đã loại thư mục này.
+!results/checkpoints/
+!results/checkpoints/**
