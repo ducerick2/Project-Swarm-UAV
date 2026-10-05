@@ -1,0 +1,12 @@
+# Lưới σ dùng để HIỆU CHỈNH (rộng hơn sigma_grid.yaml) — đọc bằng eval_robust.py --grid.
+# Chạy trên DGPPO seed0, LidarSpread + LidarLine, 256 episode, policy tất định.
+# Kết quả + mức đã chọn: docs/T2_calibration.md.
+#
+# σ_w: động học tích phân kép, dt = 0.03, |v| <= 0.5; mỗi bước controller đổi được vận tốc
+#      tối đa 10·1·0.03 = 0.3 -> nhiễu σ_w nhỏ hơn ~0.1 dễ bị bù.
+# σ_v: bán kính agent r = 0.05; lưới 0 .. 4r.
+
+mode: one_at_a_time
+
+sigma_w: [0.0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5]
+sigma_v: [0.0, 0.0125, 0.025, 0.0375, 0.05, 0.075, 0.1, 0.15, 0.2]

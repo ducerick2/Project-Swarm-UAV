@@ -2,15 +2,24 @@
 # Xem configs/schema.md để biết ý nghĩa từng khóa.
 
 method: dgppo            # dgppo | informarl | informarl_lag | cm_dgppo | fixed_margin | domain_rand
+                         # (checkpoint DGPPO dùng tên informarl_lagr)
 env: LidarSpread         # LidarSpread | LidarLine | MPESpread | CEFC-lite
 N: 3                     # 3 | 5 | 7
 seed: 0
 
-# --- Nhiễu (lớp bao NoiseWrapper) ---
+# --- Nhiễu + dịch chuyển phân phối (envs/noise_wrapper.py) ---
 noise:
-  sigma_w: 0.0           # nhiễu động học
-  sigma_v: 0.0           # nhiễu cảm biến
-  shift: 0.0             # dịch chuyển phân phối
+  sigma_w: 0.0           # std nhiễu cộng vào VẬN TỐC sau mỗi bước (đơn vị vận tốc; |v| <= 0.5)
+  sigma_v: 0.0           # std nhiễu VỊ TRÍ quan sát của agent + điểm hit LiDAR (đơn vị độ dài; r = 0.05)
+  shift_type: none       # none | n_agents | n_obs
+  shift_level: 0         # N_test hoặc số vật cản lúc test khi shift_type != none
+
+# --- Đánh giá (scripts/t2/eval_robust.py --config) ---
+eval:
+  ckpt: results/checkpoints/LidarSpread/dgppo/seed0
+  n_episodes: 256
+  test_seed: 1234        # như test.py; 32 episode đầu trùng với T1
+  stochastic: false      # false = policy tất định (mode của phân phối)
 
 # --- Biên an toàn thích nghi (chỉ dùng cho method: cm_dgppo) ---
 margin:

@@ -1,0 +1,21 @@
+# Lưới σ cho quét H1 (mạch T2) — đọc bằng scripts/t2/eval_robust.py --grid.
+#
+# TRẠNG THÁI: ĐÃ HIỆU CHỈNH (2026-10-05, DGPPO seed0, 256 episode) — chi tiết + bảng kết quả:
+# docs/T2_calibration.md. Đổi mức sau khi đã báo cáo -> phải chạy lại toàn bộ lưới.
+#
+# Đơn vị: sigma_w theo vận tốc (env LiDAR clip |v| <= 0.5, dt = 0.03);
+#         sigma_v theo độ dài (bán kính agent r = 0.05).
+
+mode: one_at_a_time      # one_at_a_time: (σ_w, 0) rồi (0, σ_v) | product: mọi tổ hợp
+
+# Lưới quét = lưới hiệu chỉnh (để vẽ đường cong + điểm gãy); chứa cả ba mức bên dưới.
+sigma_w: [0.0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5]
+sigma_v: [0.0, 0.0125, 0.025, 0.0375, 0.05, 0.075, 0.1, 0.15, 0.2]   # 0 .. 4r
+
+# Mức dùng chung (kiểm định H1 ở mid; low/high cho phân tích độ nhạy).
+# Quy tắc chọn: high = σ nhỏ nhất có safe_agent < 95% trên DGPPO LidarSpread seed0;
+# mid ≈ high/2, low ≈ high/4 (điểm lưới gần nhất; hòa -> chọn σ nhỏ hơn).
+levels:
+  low:  {sigma_w: 0.1, sigma_v: 0.0125}
+  mid:  {sigma_w: 0.2, sigma_v: 0.0375}
+  high: {sigma_w: 0.5, sigma_v: 0.075}

@@ -1,0 +1,4 @@
+# Chỉ σ = 0 — nghiệm thu khớp test.py / số liệu T1.
+mode: product
+sigma_w: [0.0]
+sigma_v: [0.0]

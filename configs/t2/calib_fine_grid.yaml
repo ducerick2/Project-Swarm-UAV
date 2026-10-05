@@ -1,0 +1,4 @@
+# Lưới mịn quanh điểm gãy (chỉ để tham khảo, không dùng chọn mức) — docs/T2_calibration.md.
+mode: one_at_a_time
+sigma_w: [0.0, 0.35, 0.4, 0.45]
+sigma_v: [0.055, 0.06, 0.065, 0.07]
