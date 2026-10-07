@@ -12,10 +12,10 @@ _T1_ENV_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 REPO="${REPO:-$(cd "$_T1_ENV_DIR/../.." && pwd)}"
 
 # Nơi lưu checkpoint/log/CSV THÔ (NGOÀI repo, không commit — xem .gitignore)
-OUTDIR="${OUTDIR:-/data/ducbm3/dgppo_runs}"
+OUTDIR="${OUTDIR:-/data/ducbm3/Master/TKPTTT/dgppo_runs}"
 
 # venv JAX cho Blackwell/5090 (cách dựng: xem scripts/t1/README.md)
-VENV="${VENV:-/data/ducbm3/dgppo_env}"
+VENV="${VENV:-/data/ducbm3/Master/TKPTTT/dgppo_env}"
 
 # CSV kết quả T1. Giữ tên lịch sử "_pilot" vì file này đang chứa CẢ seed-sweep
 # (pilot seed0 + seed1..4); có thể đổi tên sau khi xong toàn bộ 30 run.

@@ -18,7 +18,7 @@ trỏ matplotlib vào `imageio-ffmpeg` để render video — **không sửa mã
 
 ```bash
 cd <repo>
-python3 -m venv /data/ducbm3/dgppo_env && source /data/ducbm3/dgppo_env/bin/activate
+python3 -m venv /data/ducbm3/Master/TKPTTT/dgppo_env && source /data/ducbm3/Master/TKPTTT/dgppo_env/bin/activate
 pip install -U pip
 pip install "jax[cuda12]"                                   # JAX mới cho Blackwell
 grep -v '^jax' third_party/dgppo/requirements.txt | pip install -r /dev/stdin
@@ -34,8 +34,8 @@ Override bằng env-var khi gọi:
 | Biến | Mặc định | Ý nghĩa |
 |------|----------|---------|
 | `REPO` | tự suy từ vị trí script | gốc repo |
-| `OUTDIR` | `/data/ducbm3/dgppo_runs` | nơi lưu ckpt/log/CSV **thô** (ngoài repo) |
-| `VENV` | `/data/ducbm3/dgppo_env` | venv JAX-Blackwell |
+| `OUTDIR` | `/data/ducbm3/Master/TKPTTT/dgppo_runs` | nơi lưu ckpt/log/CSV **thô** (ngoài repo) |
+| `VENV` | `/data/ducbm3/Master/TKPTTT/dgppo_env` | venv JAX-Blackwell |
 | `CSV` | `$OUTDIR/t1_baseline_pilot.csv` | file kết quả (xem ghi chú tên ở dưới) |
 | `LOG` | `$OUTDIR/seeds_console.log` | log console seed-sweep (monitor đọc) |
 | `TOTAL` | `30` | tổng run kỳ vọng (5 seed × 6 config) |
@@ -57,18 +57,18 @@ Override bằng env-var khi gọi:
 
 ### Chạy 1 cấu hình
 ```bash
-source /data/ducbm3/dgppo_env/bin/activate
+source /data/ducbm3/Master/TKPTTT/dgppo_env/bin/activate
 export PYTHONPATH=<repo>/scripts/compat:$PYTHONPATH   # shim JAX0.6
 python scripts/t1/run_baseline.py --algo dgppo --env LidarSpread -n 3 \
   --seed 0 --steps 200000 --gpu 1 --test-epi 32 \
-  --outdir /data/ducbm3/dgppo_runs --csv /data/ducbm3/dgppo_runs/t1_baseline_pilot.csv
+  --outdir /data/ducbm3/Master/TKPTTT/dgppo_runs --csv /data/ducbm3/Master/TKPTTT/dgppo_runs/t1_baseline_pilot.csv
 ```
 
 ### Pilot / seed-sweep trong tmux
 ```bash
 tmux new -d -s t1pilot 'bash scripts/t1/run_pilot.sh'
 # hoặc seed-sweep (nên tee ra log để monitor đọc):
-tmux send-keys -t uav:1 'bash scripts/t1/run_seeds.sh 2>&1 | tee -a /data/ducbm3/dgppo_runs/seeds_console.log' Enter
+tmux send-keys -t uav:1 'bash scripts/t1/run_seeds.sh 2>&1 | tee -a /data/ducbm3/Master/TKPTTT/dgppo_runs/seeds_console.log' Enter
 ```
 
 ### Theo dõi

@@ -3,7 +3,7 @@
 
     python scripts/t1/run_baseline.py --algo dgppo --env LidarSpread -n 3 \
         --seed 0 --steps 200000 --gpu 1 \
-        --outdir /data/ducbm3/dgppo_runs --csv results/t1_baseline.csv
+        --outdir /data/ducbm3/Master/TKPTTT/dgppo_runs --csv results/t1_baseline.csv
 
 Yêu cầu: chạy trong venv dgppo_env, có shim JAX0.6 trong PYTHONPATH.
 Ghi CSV (T1 chi tiết): method,env,N,obs,seed,steps,reward,cost,safety_rate,
