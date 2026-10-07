@@ -7,6 +7,8 @@ Cột:
     safe_traj    tỉ lệ episode không agent nào vi phạm, kèm Wilson 95%
     viol a/o     tổng số agent từng va agent khác / va vật cản
     dist2goal    khoảng cách goal–agent gần nhất ở bước cuối (trung bình)
+    task_cost    chi phí nhiệm vụ = −tổng reward (trung bình)
+    max_h        chi phí ràng buộc: h lớn nhất trong episode (trung bình); > 0 là vi phạm
 Chỉ đọc csv — không cần JAX. CLI: scripts/t2/summarize.py.
 """
 from __future__ import annotations
@@ -20,7 +22,7 @@ GROUP = ("method", "env", "N_test", "obs_test", "policy_mode")
 SUMMARY_COLUMNS = [
     "method", "env", "N_test", "obs_test", "policy_mode", "sigma_w", "sigma_v", "n_epi", "seeds",
     "safe_agent", "safe_agent_lo", "safe_agent_hi", "delta_pp", "safe_traj", "safe_traj_lo",
-    "safe_traj_hi", "viol_agent", "viol_obs", "dist2goal", "task_cost",
+    "safe_traj_hi", "viol_agent", "viol_obs", "dist2goal", "task_cost", "max_h",
 ]
 
 
@@ -58,6 +60,7 @@ def summarize(rows):
             "viol_obs": sum(int(r["n_viol_obs"]) for r in rs),
             "dist2goal": sum(float(r["mean_dist2goal"]) for r in rs) / n_epi,
             "task_cost": sum(float(r["task_cost"]) for r in rs) / n_epi,
+            "max_h": sum(float(r["max_h"]) for r in rs) / n_epi,
         })
 
     base = {t["key"][:len(GROUP)]: t["safe_agent"] for t in table if t["key"][-2:] == (0.0, 0.0)}
@@ -70,8 +73,8 @@ def summarize(rows):
 def to_markdown(table) -> str:
     lines = [
         "| method | env | N | obs | mode | σ_w | σ_v | epi | safe_agent % [Wilson95] | Δ vs σ=0 (pp) "
-        "| safe_traj % [Wilson95] | viol a/o | dist2goal | task_cost |",
-        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+        "| safe_traj % [Wilson95] | viol a/o | dist2goal | task_cost | max_h |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for t in table:
         method, env, n, obs, mode, sw, sv = t["key"]
@@ -82,7 +85,7 @@ def to_markdown(table) -> str:
             f"| {method} | {env} | {n} | {obs} | {mode} | {sw:g} | {sv:g} | {t['n_epi']} "
             f"| {t['safe_agent'] * 100:.1f} [{lo * 100:.1f}, {hi * 100:.1f}] | {delta} "
             f"| {t['safe_traj'] * 100:.1f} [{tlo * 100:.1f}, {thi * 100:.1f}] "
-            f"| {t['viol_agent']}/{t['viol_obs']} | {t['dist2goal']:.3f} | {t['task_cost']:.3f} |")
+            f"| {t['viol_agent']}/{t['viol_obs']} | {t['dist2goal']:.3f} | {t['task_cost']:.3f} | {t['max_h']:+.3f} |")
     return "\n".join(lines)
 
 
@@ -102,4 +105,5 @@ def write_summary_csv(table, path: str) -> None:
                 "safe_traj_lo": round(t["safe_traj_ci"][0], 6), "safe_traj_hi": round(t["safe_traj_ci"][1], 6),
                 "viol_agent": t["viol_agent"], "viol_obs": t["viol_obs"],
                 "dist2goal": round(t["dist2goal"], 6), "task_cost": round(t["task_cost"], 6),
+                "max_h": round(t["max_h"], 6),
             })

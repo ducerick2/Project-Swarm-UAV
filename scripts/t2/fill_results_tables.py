@@ -55,7 +55,7 @@ def tbl_summary(rows, with_shift: bool = False) -> str:
     table = summarize(rows)
     head = ["env"] + (["N", "obs", "mode"] if with_shift else []) + \
            ["σ_w", "σ_v", "epi", "safe_agent % [Wilson95]", "Δ vs σ=0 (pp)", "safe_traj % [Wilson95]",
-            "viol agent/obs", "dist2goal", "task_cost"]
+            "viol agent/obs", "dist2goal", "task_cost", "max_h"]
     out = ["| " + " | ".join(head) + " |", "|" + "---|" * len(head)]
     for t in table:
         method, env, n, obs, mode, sw, sv = t["key"]
@@ -64,7 +64,7 @@ def tbl_summary(rows, with_shift: bool = False) -> str:
         cells = [env] + ([n, obs, mode] if with_shift else []) + [
             s_w, s_v, str(t["n_epi"]), f"{pct(t['safe_agent'])} {ci(t['safe_agent_ci'])}", delta,
             f"{pct(t['safe_traj'])} {ci(t['safe_traj_ci'])}", f"{t['viol_agent']}/{t['viol_obs']}",
-            f"{t['dist2goal']:.3f}", f"{t['task_cost']:.3f}"]
+            f"{t['dist2goal']:.3f}", f"{t['task_cost']:.3f}", f"{t['max_h']:+.3f}"]
         out.append("| " + " | ".join(str(c) for c in cells) + " |")
     return "\n".join(out)
 

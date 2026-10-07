@@ -354,7 +354,8 @@ def _evaluate(args, run, rec, config, n_test, obs_test, mode, jax, jnp, jr, make
                      "delta_pp": None if t["delta_pp"] is None else round(t["delta_pp"], 4),
                      "safe_traj": round(t["safe_traj"], 6),
                      "viol_agent": t["viol_agent"], "viol_obs": t["viol_obs"],
-                     "dist2goal": round(t["dist2goal"], 6), "task_cost": round(t["task_cost"], 6)}
+                     "dist2goal": round(t["dist2goal"], 6), "task_cost": round(t["task_cost"], 6),
+                     "max_h": round(t["max_h"], 6)}
                     for t in table],
     })
     print(f"[T2] CSV: {args.csv}", flush=True)
